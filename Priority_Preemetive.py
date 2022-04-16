@@ -8,21 +8,18 @@
 # 		-- Time line showing the order and time taken by each process (Gantt Chart)
 # 		-- Average waiting time.
 
-from operator import attrgetter
-
-# recheck this please
-# global N3
-NumberofProcesses = 6
-# global preemptive__2
-preemptive__2 = 1
-# global process
+global NumberofProcesses
+NumberofProcesses = 0
+global preemptive_orNot
+preemptive_orNot = 0
+global processList
 processList = []
-# global OutputPriority
-OutputPriority=[]
-# global time
+global outputPriority
+outputPriority = []
+global time
 time = 0.0
-# global avg_waiting_time_pri
-avg_waiting_time_pri = 0.0
+global avgWaitingTimePriority
+avgWaitingTimePriority = 0.0
 
 class process:
     def __init__(self, pid, burstTime = 0, arrivalTime = 0, priority = 0):
@@ -35,21 +32,19 @@ class process:
     def waitingTime(self):
         return self.leaveTime - self.arrivalTime - self.burstTime
 
-def Handler_sim_priority():
+def Handler_ganttPriorityCalc():
     global NumberofProcesses
     number_of_processes = NumberofProcesses
     global time
     time = 0.0
     total_waitingTime = 0.0
-    global avg_waiting_time_pri
-    global OutputPriority
-    OutputPriority.clear()
-
-    # ['burstTime'] is that right ? is it equal to .burstTime ??
+    global avgWaitingTimePriority
+    global outputPriority
+    outputPriority.clear()
+    # to_nextCheck is a slice of time to recheck the running process for premeetive swap
     min_burst = min(obj.burstTime for obj in processList)
     to_nextCheck = float(min_burst)* 0.1
 
-    # sortedByArrive = sorted(processList, key = lambda x : x.arrivalTime)
     # sort by arrival and priority if arrival == arrival
     for i in range(0, int(number_of_processes)):
         for j in range(i+1, int(number_of_processes)):
@@ -63,13 +58,12 @@ def Handler_sim_priority():
                 processList[j] = temp
 
     # non preemetive
-    if int(preemptive__2) == 0:
+    if int(preemptive_orNot) == 0:
         for i in range(int(number_of_processes)):
-            OutputPriority.append({'process' : processList[i].pid, 'arrival': processList[i].arrivalTime, 'length': processList[i].burstTime})
-            time = OutputPriority[-1]['length'] + (time if processList[i].arrivalTime <= time else processList[i].arrivalTime)
+            outputPriority.append({'process' : processList[i].pid, 'arrival': processList[i].arrivalTime, 'length': processList[i].burstTime})
+            time = outputPriority[-1]['length'] + (time if processList[i].arrivalTime <= time else processList[i].arrivalTime)
             process_leaveTime = time
             total_waitingTime += process_leaveTime - processList[i].arrivalTime - processList[i].burstTime
-            print("test")
 
     # preemetive
     else:
@@ -88,8 +82,8 @@ def Handler_sim_priority():
             #deleting the process when it is done and new current process
             if(burst_time <= 0):
                 length = length + burst_time
-                OutputPriority.append({'process': current_process.pid, 'arrival' : current_process.arrivalTime, 'length': round(length,3)})
-                time = OutputPriority[-1]['length'] + (time if current_process.arrivalTime <= time else current_process.arrivalTime)
+                outputPriority.append({'process': current_process.pid, 'arrival' : current_process.arrivalTime, 'length': round(length,3)})
+                time = outputPriority[-1]['length'] + (time if current_process.arrivalTime <= time else current_process.arrivalTime)
                 process_leaveTime = time
                 total_waitingTime += process_leaveTime - current_process.arrivalTime - current_process.burstTime
 
@@ -115,8 +109,8 @@ def Handler_sim_priority():
                         pp = current_time - processList[i].arrivalTime
                         current_time = processList[i].arrivalTime
                         processList[0].burstTime = burst_time + pp #pp is the impurities
-                        OutputPriority.append({'process': current_process.pid, 'arrival' : current_process.arrivalTime, 'length': round(length - pp,3)})
-                        time = OutputPriority[-1]['length'] + (time if current_process.arrivalTime <= time else current_process.arrivalTime)
+                        outputPriority.append({'process': current_process.pid, 'arrival' : current_process.arrivalTime, 'length': round(length - pp,3)})
+                        time = outputPriority[-1]['length'] + (time if current_process.arrivalTime <= time else current_process.arrivalTime)
                         process_leaveTime = time
                         total_waitingTime += process_leaveTime - current_process.arrivalTime - current_process.burstTime
 
@@ -129,101 +123,22 @@ def Handler_sim_priority():
 
             if (number_of_processes == 0): break
 
-    avg_waiting_time_pri = round(total_waitingTime / NumberofProcesses, 3)
-    print('output is',OutputPriority)
-    print('avg.', avg_waiting_time_pri)
-
-
-def get_nameList(objList):
-    outputList = []
-    for obj in objList:
-        outputList.append(obj.pid)
-    return outputList
-
-def get_priorityList(objList):
-    outputList = []
-    for obj in objList:
-        outputList.append(obj.priority)
-    return outputList
-
-def get_arrivalTime(objList):
-    outputList = []
-    for obj in objList:
-        outputList.append(obj.arrivalTime)
-    return outputList
-
-def get_burstTime(objList):
-    outputList = []
-    for obj in objList:
-        outputList.append(obj.burstTime)
-    return outputList
-
-def get_minIndices(inputlist):
-    # get the minimum value in the list
-    min_value = min(inputlist)
-    # return the index of minimum value
-    min_index = []
-    for i in range(0, len(inputlist)):
-        if min_value == inputlist[i]:
-            min_index.append(i)
-    return min_index
+    avgWaitingTimePriority = round(total_waitingTime / NumberofProcesses, 3)
+    print('output is',outputPriority)
+    print('avg.', avgWaitingTimePriority)
 
 def get_average(inputlist):
     return sum(inputlist)/len(inputlist)
 
-def gantt_priorityPreemptive(objList):
-    gantt = []
-    waitingTime = []
-    # print("Processes:")
-    # for obj in objList:
-    #     print(obj.pid, obj.burstTime, obj.arrivalTime, obj.priority)
-    
-    # the first list for drawing gantt and the seceond for calc waiting time
-    sortedByArrive = sorted(processList, key = lambda x : x.arrivalTime)
-    sortedByArrive2 = sorted(processList, key = lambda x : x.arrivalTime)
-    priorityList = get_priorityList(sortedByArrive)
-    arrivalList = get_arrivalTime(sortedByArrive)
-    burstList = get_burstTime(sortedByArrive)
-    nameList = get_nameList(sortedByArrive)
-    Time = sum(burstList)
-    print("Total Time =",Time)
-    # print("Processes(SA):")
-    # for obj in sortedByArrive:
-    #     print(obj.pid, obj.burstTime, obj.arrivalTime, obj.priority)
-    for o in sortedByArrive2:
-        waitingTime.append(0)
-    arrSoFar = []
-    for tick in range(int(Time)):
-        arrSoFar.clear()
-        for o in sortedByArrive:
-            if o.arrivalTime <= tick:
-                arrSoFar.append(o)
-                waitingTime[sortedByArrive2.index(o)] = waitingTime[sortedByArrive2.index(o)] + 1
-        tempO = min(arrSoFar, key=attrgetter('priority'))
-        gantt.append(tempO.pid)
-        tempO.burstTime = tempO.burstTime - 1
-        if waitingTime[sortedByArrive2.index(tempO)] != 0:
-            waitingTime[sortedByArrive2.index(tempO)] = waitingTime[sortedByArrive2.index(tempO)] - 1
-        if tempO.burstTime == 0:
-            del sortedByArrive[sortedByArrive.index(tempO)]
-    
-    print("Gantt chart:",*gantt)
-    print("Process name:",*nameList)
-    print("Waiting time:",*waitingTime)
-    print("Average Waiting Time =", round((get_average(waitingTime)), 3))
-
 # inputs (from GUI to list of objects):
 # process (pid, burstTime, arrivalTime, priority)
-processList.append(process(2, 4, 1.2, 3))
-processList.append(process(1, 6, 0, 2))
-processList.append(process(4, 2, 3.5, 1))
-processList.append(process(6, 3, 3.5, 2))
-processList.append(process(3, 5, 1.2, 1))
-processList.append(process(5, 1, 3.5, 4))
+# processList.append(process(2, 4, 1.2, 3))
+# processList.append(process(1, 6, 0, 2))
+# processList.append(process(4, 2, 3.5, 1))
+# processList.append(process(6, 3, 3.5, 2))
+# processList.append(process(3, 5, 1.2, 1))
+# processList.append(process(5, 1, 3.5, 4))
 
-Handler_sim_priority()
-# gantt_priorityPreemptive(processList)
+# Handler_ganttPriorityCalc()
 
 # output (from gantt list to GUI figure?):
-
-
