@@ -16,3 +16,7 @@ Priority.Handler_ganttPriorityCalc()
 print(Priority.avgWaitingTimePriority)
 print(Priority.outputPriority)
 print(Priority.time)
+
+print(Priority.outputPriority[0]['length'])
+time = (Priority.outputPriority)[3]['arrival']
+print(time)

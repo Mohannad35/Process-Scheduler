@@ -14,7 +14,7 @@
 #                               Average waiting time
 
 global NumberofProcesses
-NumberofProcesses = 6
+NumberofProcesses = 0
 global preemptive_orNot
 preemptive_orNot = 0
 global processList
@@ -50,18 +50,27 @@ def Handler_ganttPriorityCalc():
     # to_nextCheck is a slice of time to recheck the running process for premeetive swap
     min_burst = min(obj.burstTime for obj in processList)
     to_nextCheck = float(min_burst)* 0.1
-
+    # T is time line in non preemptive (current time)
+    T = 0.0
     # sort by arrival and priority if arrival == arrival
     for i in range(0, int(number_of_processes)):
         for j in range(i+1, int(number_of_processes)):
+            # sort by arrival at first
             if(processList[i].arrivalTime > processList[j].arrivalTime):
                 temp = processList[i]
                 processList[i] = processList[j]
                 processList[j] = temp
+            # sort by priority if arrival == arrival
             elif (processList[i].arrivalTime == processList[j].arrivalTime and processList[i].priority > processList[j].priority):
                 temp = processList[i]
                 processList[i] = processList[j]
                 processList[j] = temp
+            # sort by priority for all arrived processes
+            elif ((processList[j].arrivalTime < T) and (processList[i].priority > processList[j].priority)):
+                temp = processList[i]
+                processList[i] = processList[j]
+                processList[j] = temp
+        T += processList[i].burstTime
 
     # non preemetive
     if int(preemptive_orNot) == 0:
@@ -121,7 +130,7 @@ def Handler_ganttPriorityCalc():
                         # we remove timeImpurities from current time
                         currentTime = processList[i].arrivalTime
                         # saving the burst time done till now so we can calculate the avg waiting time later
-                        processList[0].leftoverTime = processList[0].burstTime - burstTime
+                        processList[0].leftoverTime += processList[0].burstTime - burstTime
                         # we update the remaining burst time of the process that is getting swap out of the processor
                         processList[0].burstTime = burstTime + timeImpurities
                         # append the partially finished process (getting swap out of processor) to output list
